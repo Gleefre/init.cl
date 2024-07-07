@@ -320,13 +320,19 @@
                                  and collect n/i))
         #'<))
 
-(defun factorize (n)
+(defun vp (n p)
+  (loop for deg from 0
+        while (zerop (mod n p))
+        do (setf n (/ n p))
+        finally (return (values deg n))))
+
+(defun factorize (num)
   (loop for i from 2
+        for n = num then new-n
+        for (deg new-n) = (multiple-value-list (vp n i))
         while (> n 1)
-        when (zerop (mod n i))
-        collect (cons i
-                      (loop while (zerop (mod n i))
-                            count (setf n (/ n i))))))
+        when (plusp deg)
+        collect (cons i deg)))
 
 (defun radians (degrees)
   (* pi (/ degrees 180)))
