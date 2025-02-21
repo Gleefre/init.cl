@@ -25,6 +25,9 @@
 (define-modify-macro clampf (low high) clamp)
 (define-modify-macro multf (&rest numbers) *)
 
+(defun compose (f g)
+  (lambda (&rest arguments)
+	(funcall f (apply g arguments))))
 ;;; Stuff
 
 (defun variable-type (symbol)
