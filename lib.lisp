@@ -28,6 +28,16 @@
 (defun compose (f g)
   (lambda (&rest arguments)
 	(funcall f (apply g arguments))))
+
+;;; Sequences (?)
+
+(defun sort-as (vec1 vec2 predicate &key (key #'identity))
+  (map 'vector
+       #'car
+       (sort (map 'vector #'cons vec1 vec2)
+             predicate
+             :key (compose key #'cdr))))
+
 ;;; Stuff
 
 (defun variable-type (symbol)
