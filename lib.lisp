@@ -378,6 +378,12 @@
         (push r result)))
     result))
 
+(defun primep (num)
+  (and
+   (> num 1)
+   (loop for i from 2 while (<= (sq i) num)
+         never (zerop (mod num i)))))
+
 ;;; ranges
 
 (defun <=< (min x max)
