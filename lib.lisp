@@ -304,8 +304,10 @@
 (defmacro! with-locals ((&optional scope-name) &body body)
   `(with-new-env (,(g! env))
      (tmlet ((local (name &optional (scope-name nil scope-name-p))
-               (if (and scope-name-p (neq scope-name ',scope-name))
-                   `(,local ,name ,scope-name)
+               (if scope-name-p
+                   (if (neq scope-name ',scope-name)
+                       `(,local ,name ,scope-name)
+                       `(place (lambda () (lookup-env ,',(g! env) ',name ',scope-name))))
                    (with-g!
                      `(place (lambda () (lookup-env ,',(g! env) ',name))
                              (lambda (,(g! value)) (set-env ,',(g! env) ',name ,(g! value))))))))
@@ -353,6 +355,7 @@
 (defun degrees (radians)
   (* 180 (/ radians pi)))
 
+(declaim (inline sq))
 (defun sq (x) (* x x))
 
 (defun sqrt* (x)
