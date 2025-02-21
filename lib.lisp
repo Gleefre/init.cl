@@ -428,3 +428,94 @@
 
 (defun python-list (list)
   (format t "[~{~s~^, ~}]~%" list))
+
+;;; Permutations
+
+(defun permutation-sign (p &aux (n (length p)) (s (make-array n :initial-contents p)))
+  (loop with sign = 1
+        for i below n
+        do (loop for j = (aref s i)
+                 until (= i j)
+                 do (rotatef (aref s i) (aref s j))
+                    (multf sign -1))
+        finally (return sign)))
+
+;;; Polynoms
+
+(defstruct (polynom (:constructor polynom (&rest coeffs
+                                           &aux (coefficients
+                                                 (coerce (reverse (member-if-not #'zerop (reverse coeffs)))
+                                                         'vector)))))
+  coefficients)
+
+(defun polynom-degree (p)
+  (max 0 (1- (length (polynom-coefficients p)))))
+
+(defun polynom-coefficient (p k)
+  (if (< k (length (polynom-coefficients p)))
+      (aref (polynom-coefficients p) k)
+      0))
+
+(defun coeff->string (coeff power beginp &aux (plusp (plusp coeff)) (onep (and (= 1 (abs coeff)) (not (zerop power)))))
+  (cond ((zerop coeff) "")
+        ((and beginp onep)
+         (format nil "~:[-~;~]~[~;x~:;x^~:*~A~]" plusp power))
+        (beginp
+         (format nil "~A~[~; x~:; x^~:*~A~]" coeff power))
+        (t
+         (format nil "~:[-~;+~]~:[ ~A~;~*~]~[~; x~:; x^~:*~A~]" plusp onep (abs coeff) power))))
+
+(defun coeffs->string (coeffs)
+  (loop for power from 0
+        for coeff across coeffs
+        for str = (coeff->string coeff power (null strs))
+        unless (string= "" str) collect str into strs
+        finally (return (if strs (format nil "~{~A~^ ~}" strs) "0"))))
+
+(defmethod print-object ((polynom polynom) stream)
+  (format stream "#<P ~A>" (coeffs->string (polynom-coefficients polynom))))
+
+(defun polynom+2 (p1 p2)
+  (apply #'polynom (loop for x below (max (length (polynom-coefficients p1))
+                                          (length (polynom-coefficients p2)))
+                         collect (+ (polynom-coefficient p1 x)
+                                    (polynom-coefficient p2 x)))))
+
+(defun polynom+ (&rest ps)
+  (reduce #'polynom+2 ps :initial-value (polynom)))
+
+(defun polynom-2 (p1 p2)
+  (apply #'polynom (loop for x to (max (polynom-degree p1) (polynom-degree p2))
+                         collect (- (polynom-coefficient p1 x)
+                                    (polynom-coefficient p2 x)))))
+
+(defun polynom- (p &rest ps)
+  (polynom-2 p (apply #'polynom+ ps)))
+
+(defun polynom*2 (p1 p2)
+  (apply #'polynom (loop for x to (+ (polynom-degree p1) (polynom-degree p2))
+                         collect (loop for y to x
+                                       sum (* (polynom-coefficient p1 y)
+                                              (polynom-coefficient p2 (- x y)))))))
+
+(defun polynom* (&rest ps)
+  (reduce #'polynom*2 ps :initial-value (polynom 1)))
+
+
+(defun mat->cmat (mat &aux (n (array-dimension mat 0)))
+  (make-array (list n n)
+              :initial-contents (loop for x below n
+                                      collect (loop for y below n
+                                                    collect (polynom (aref mat x y) (if (= x y) -1 0))))))
+
+(defun pmat-det (mat &aux (n (array-dimension mat 0)))
+  (let ((result (polynom)))
+    (a:map-permutations
+     (lambda (s)
+       (let ((summand (apply #'polynom*
+                             (polynom (permutation-sign s))
+                             (loop for i from 0 for j in s
+                                   collect (aref mat i j)))))
+         (setf result (polynom+ result summand))))
+     (a:iota n))
+    result))
