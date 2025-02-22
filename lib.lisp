@@ -519,3 +519,35 @@
          (setf result (polynom+ result summand))))
      (a:iota n))
     result))
+
+;;; Graphs
+
+(defun pn? (n x y)
+  (declare (ignorable n))
+  (or (= x (1+ y))
+      (= y (1+ x))))
+
+(defun cn? (n x y)
+  (or (= x (mod (1+ y) n))
+      (= y (mod (1+ x) n))))
+
+(defun kn? (n x y)
+  (declare (ignorable n))
+  (not (= x y)))
+
+(defun mat-pred (n pred)
+  (make-array (list n n) :initial-contents (loop for x below n
+                                                 collect (loop for y below n
+                                                               collect (if (funcall pred n x y) 1 0)))))
+
+(defun pn-mat (n)
+  (mat-pred n #'pn?))
+
+(defun cn-mat (n)
+  (mat-pred n #'cn?))
+
+(defun kn-mat (n)
+  (mat-pred n #'kn?))
+
+(defun mat-polynom (mat)
+  (pmat-det (mat->cmat mat)))
