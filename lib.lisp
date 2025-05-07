@@ -508,16 +508,17 @@
                                       collect (loop for y below n
                                                     collect (polynom (aref mat x y) (if (= x y) -1 0))))))
 
+#-slow
 (defun pmat-det (mat &aux (n (array-dimension mat 0)))
   (let ((result (polynom)))
-    (a:map-permutations
+    (alexandria:map-permutations
      (lambda (s)
        (let ((summand (apply #'polynom*
                              (polynom (permutation-sign s))
                              (loop for i from 0 for j in s
                                    collect (aref mat i j)))))
          (setf result (polynom+ result summand))))
-     (a:iota n))
+     (alexandria:iota n))
     result))
 
 ;;; Graphs
