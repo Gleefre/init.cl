@@ -1,3 +1,4 @@
+#-sky-user
 (defpackage #:sky-user
   (:use #:cl))
 
@@ -7,7 +8,7 @@
 (setf *random-state* (make-random-state T))
 
 ;;; Load quicklisp
-#-quicklisp
+#-(or quicklisp sky-user)
 (let ((quicklisp-init (merge-pathnames "sbcl-home/.quicklisp/setup.lisp" (user-homedir-pathname))))
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
@@ -33,7 +34,7 @@
 (pushnew :macroexpand-all *features*)
 
 #+mkcl (require :walker)
-#+macroexpand-all
+#+(and macroexpand-all (not sky-user))
 (defun macroexpand-all (form &optional env)
   (declare (ignorable env))
   (values (#+sbcl sb-walker:macroexpand-all
@@ -55,6 +56,7 @@
 #+allegro (pushnew :package-local-nicknames *features*)
 
 ;;; Creates a global nickname when PLNs are not supported
+#-sky-user
 (defmacro nick (&rest nick-package &key &allow-other-keys)
   `(progn
      #+package-local-nicknames
@@ -79,7 +81,7 @@
                                           (list* ',nick (package-nicknames (find-package ',package)))))))))
 
 ;;; Load various libraries, add nicknames
-#-slow
+#-(or slow sky-user)
 (progn
   (ql:quickload (list :alexandria #-mkcl :serapeum  ; doesn't work on MKCL
                       :stopclock :named-readtables
@@ -96,15 +98,15 @@
 
 ;;; symbol-links
 
-#+(and (or sbcl lispworks ccl cmucl) (not symbol-links))
+#+(and (or sbcl lispworks ccl cmucl) (not symbol-links) (not sky-user))
 (use-package (ql:quickload :symbol-links :silent t))
 
-#+(and (or sbcl lispworks ccl cmucl) (not symbol-links))
+#+(and (or sbcl lispworks ccl cmucl) (not symbol-links) (not sky-user))
 (progn
   (enable-hack!)
   (pushnew :symbol-links *features*))
 
-#+symbol-links
+#+(and symbol-links (not sky-user))
 (progn
   (link λ lambda)
   (link mvb multiple-value-bind)
@@ -120,13 +122,13 @@
 
 ;;; loop-continue
 
-#+(or sbcl cmucl ccl allegro clasp abcl ecl)
+#+(and (or sbcl cmucl ccl allegro clasp abcl ecl) (not sky-user))
 (ql:quickload :loop-continue/enable :silent t)
 
 ;;; Define shortcuts as functions named by keywords
 ;;; Doesn't work on lispworks
 
-#-lispworks
+#-(or lispworks sky-user)
 (progn
   (defun :test (s) (asdf:test-system s))
   (defun :sl (n &optional (force t)) (asdf:load-system n :force force))
@@ -147,4 +149,9 @@
   (defun :quit () (uiop:quit)))
 
 ;;; Load a small library
+#-sky-user
 (load (merge-pathnames ".lib.lisp" (user-homedir-pathname)))
+
+(in-package #:cl-user)
+
+(pushnew :sky-user *features*)
