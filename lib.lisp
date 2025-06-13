@@ -490,7 +490,9 @@
                                     (polynom-coefficient p2 x)))))
 
 (defun polynom- (p &rest ps)
-  (polynom-2 p (apply #'polynom+ ps)))
+  (if (null ps)
+      (polynom-2 (polynom) p)
+      (polynom-2 p (apply #'polynom+ ps))))
 
 (defun polynom*2 (p1 p2)
   (apply #'polynom (loop for x to (+ (polynom-degree p1) (polynom-degree p2))
