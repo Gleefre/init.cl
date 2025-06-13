@@ -8,20 +8,20 @@
 
 ;;; Load quicklisp
 #-quicklisp
-(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname))))
+(let ((quicklisp-init (merge-pathnames "sbcl-home/.quicklisp/setup.lisp" (user-homedir-pathname))))
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
 
 ;; disable Ultralisp by default
-(ql-dist:disable (ql-dist:dist "ultralisp"))
+; (ql-dist:disable (ql-dist:dist "ultralisp"))
 
 ;; Don't load lots of libraries on slow implementations
 #+(or ecl acl clisp clasp abcl cmucl mkcl) (pushnew :slow *features*)
 
 ;; Local projects
-(push #P"/home/grolter/sky-emp/" ql:*local-project-directories*)
-(push #P"/home/grolter/good-root/projects/lisp/" ql:*local-project-directories*)
-(push #P"/home/grolter/good-root/learn-materials/lisp/" ql:*local-project-directories*)
+; (push #P"/home/grolter/sky-emp/" ql:*local-project-directories*)
+; (push #P"/home/grolter/good-root/projects/lisp/" ql:*local-project-directories*)
+; (push #P"/home/grolter/good-root/learn-materials/lisp/" ql:*local-project-directories*)
 
 ;; Load asdf-contrib for ABCL, setup path to .jar files
 #+abcl (require :abcl-contrib)
