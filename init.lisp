@@ -16,7 +16,7 @@
 (ql-dist:disable (ql-dist:dist "ultralisp"))
 
 ;; Don't load lots of libraries on slow implementations
-#+(or ecl acl clisp clasp abcl cmucl) (pushnew :slow *features*)
+#+(or ecl acl clisp clasp abcl cmucl mkcl) (pushnew :slow *features*)
 
 ;; Local projects
 (push #P"/home/grolter/sky-emp/" ql:*local-project-directories*)
@@ -84,13 +84,15 @@
   (ql:quickload (list :alexandria #-mkcl :serapeum  ; doesn't work on MKCL
                       :stopclock :named-readtables
                       :trivial-indent
+                      :trivial-gray-streams
                       :cffi)
                 :silent t)
   #-mkcl (nick #:s   #:serapeum)
   (nick #:sc  #:stopclock
         #:a   #:alexandria
         #:nr  #:named-readtables
-        #:ti  #:trivial-indent))
+        #:ti  #:trivial-indent
+        #:tgs #:trivial-gray-streams))
 
 ;;; symbol-links
 
@@ -105,6 +107,8 @@
 #+symbol-links
 (progn
   (link λ lambda)
+  (link mvb multiple-value-bind)
+  (link quit :quit)
   #-slow
   (named-readtables:defreadtable :symbol-links
     (:merge :standard)
@@ -131,7 +135,7 @@
     `(let ((*print-case* :downcase))
        (pprint ',(let ((*gensym-counter* 0))
                    (macroexpand form env)))))
-  #-(or slow (not package-local-nicknames))
+  #+macroexpand-all
   (defmacro :maca (form &environment env)
     `(let ((*print-case* :downcase))
        (pprint ',(let ((*gensym-counter* 0))
