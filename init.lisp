@@ -87,14 +87,16 @@
                       :stopclock :named-readtables
                       :trivial-indent
                       :trivial-gray-streams
-                      :cffi)
+                      :cffi
+                      :cl-gpio)
                 :silent t)
   #-mkcl (nick #:s   #:serapeum)
   (nick #:sc  #:stopclock
         #:a   #:alexandria
         #:nr  #:named-readtables
         #:ti  #:trivial-indent
-        #:tgs #:trivial-gray-streams))
+        #:tgs #:trivial-gray-streams
+        #:g   #:gpio))
 
 ;;; symbol-links
 
