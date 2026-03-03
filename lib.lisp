@@ -39,10 +39,9 @@
              :key (compose key #'cdr))))
 
 (defun count-into-alist (list &key (test 'equal))
-  (loop with result = (make-hash-table :test test)
-        for e in list
-        do (incf (gethash e result 0))
-        finally (return (sort (alexandria:hash-table-alist result) #'< :key #'cdr))))
+  (let ((result (make-hash-table :test test)))
+    (dolist (element list (sort (alexandria:hash-table-alist result) #'< :key #'cdr))
+      (incf (gethash element result 0)))))
 
 ;;; Stuff
 
