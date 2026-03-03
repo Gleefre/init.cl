@@ -148,3 +148,14 @@
 
 ;;; Load a small library
 (load (merge-pathnames ".lib.lisp" (user-homedir-pathname)))
+
+;;; harmony -- graceful quit
+(defun maybe-stop-harmony ()
+  (let ((server (find-package "ORG.SHIRAKUMO.FRAF.HARMONY")))
+    (when (and server
+               (setf server (find-symbol "*SERVER*" server))
+               (setf server (symbol-value server))
+               (funcall (find-symbol "STARTED-P" "ORG.SHIRAKUMO.FRAF.HARMONY") server))
+      (funcall (find-symbol "STOP" "ORG.SHIRAKUMO.FRAF.HARMONY") server))))
+
+#+sbcl (pushnew 'maybe-stop-harmony sb-ext:*exit-hooks*)
