@@ -326,6 +326,9 @@
 
 ;;; Math
 
+(declaim (inline sq))
+(defun sq (x) (* x x))
+
 (defun factors (n)
   (sort (remove-duplicates (loop for i from 1
                                  for n/i = (/ n i)
@@ -347,16 +350,15 @@
         for (deg new-n) = (multiple-value-list (vp n i))
         while (> n 1)
         when (plusp deg)
-        collect (cons i deg)))
+        collect (cons i deg)
+        else when (> (sq i) n)
+        collect (cons n 1) and do (loop-finish)))
 
 (defun radians (degrees)
   (* pi (/ degrees 180)))
 
 (defun degrees (radians)
   (* 180 (/ radians pi)))
-
-(declaim (inline sq))
-(defun sq (x) (* x x))
 
 (defun sqrt* (x)
   (flet ((isqrt-p (x)
@@ -510,7 +512,6 @@
                                       collect (loop for y below n
                                                     collect (polynom (aref mat x y) (if (= x y) -1 0))))))
 
-#-slow
 (defun pmat-det (mat &aux (n (array-dimension mat 0)))
   (let ((result (polynom)))
     (alexandria:map-permutations

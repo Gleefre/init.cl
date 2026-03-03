@@ -130,7 +130,7 @@
 (progn
   (defun :test (s) (asdf:test-system s))
   (defun :sl (n &optional (force t)) (asdf:load-system n :force force))
-  (defun :ql (n) (ql:quickload n))
+  (defun :ql (n &rest args) (apply #'ql:quickload n args))
   (defmacro :mac (form &environment env)
     `(let ((*print-case* :downcase))
        (pprint ',(let ((*gensym-counter* 0))
