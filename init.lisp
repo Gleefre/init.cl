@@ -30,7 +30,9 @@
 #+abcl (when *abcl-jars* (abcl-asdf:add-directory-jars-to-class-path *abcl-jars* NIL))
 
 ;; disable Ultralisp by default
-(ql-dist:disable (ql-dist:dist "ultralisp"))
+(let ((ultralisp (ql-dist:dist "ultralisp")))
+  (when ultralisp
+    (ql-dist:disable ultralisp)))
 
 ;; Don't load lots of libraries on slow implementations
 #+(or ecl acl clisp clasp abcl cmucl mkcl) (pushnew :slow *features*)
