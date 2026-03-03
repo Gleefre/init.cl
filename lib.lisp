@@ -38,6 +38,12 @@
              predicate
              :key (compose key #'cdr))))
 
+(defun count-into-alist (list &key (test 'equal))
+  (loop with result = (make-hash-table :test test)
+        for e in list
+        do (incf (gethash e result 0))
+        finally (return (sort (alexandria:hash-table-alist result) #'< :key #'cdr))))
+
 ;;; Stuff
 
 (defun variable-type (symbol)
