@@ -6,27 +6,34 @@
 ;;; Initialize random-state
 (setf *random-state* (make-random-state T))
 
+;;; Load a machine-specific init file
+(load (merge-pathnames ".local-init.lisp" (user-homedir-pathname)))
+
+;; Not used when set in the local init file
+(defvar *quicklisp-path* "quicklisp/setup.lisp")
+(defvar *local-projects* ())
+#+abcl (defvar *abcl-jars* nil)
+
 ;;; Load quicklisp
 #-quicklisp
-(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname))))
+(let ((quicklisp-init (merge-pathnames *quicklisp-path* (user-homedir-pathname))))
   (when (probe-file quicklisp-init)
     (load quicklisp-init)))
+
+(dolist (path *local-projects*)
+  (push (merge-pathnames path (user-homedir-pathname))
+        ql:*local-project-directories*))
+
+;; Load asdf-contrib for ABCL, setup path to .jar files
+#+abcl (require :abcl-contrib)
+#+abcl (require :abcl-asdf)
+#+abcl (when *abcl-jars* (abcl-asdf:add-directory-jars-to-class-path *abcl-jars* NIL))
 
 ;; disable Ultralisp by default
 (ql-dist:disable (ql-dist:dist "ultralisp"))
 
 ;; Don't load lots of libraries on slow implementations
 #+(or ecl acl clisp clasp abcl cmucl mkcl) (pushnew :slow *features*)
-
-;; Local projects
-(push #P"/home/grolter/sky-emp/" ql:*local-project-directories*)
-(push #P"/home/grolter/good-root/projects/lisp/" ql:*local-project-directories*)
-(push #P"/home/grolter/good-root/learn-materials/lisp/" ql:*local-project-directories*)
-
-;; Load asdf-contrib for ABCL, setup path to .jar files
-#+abcl (require :abcl-contrib)
-#+abcl (require :abcl-asdf)
-#+abcl (abcl-asdf:add-directory-jars-to-class-path "~/Public/abcl/jars/" NIL)
 
 ;;; NIH: trivial-macroexpand-all
 #+(or sbcl cmucl ccl allegro ecl abcl clisp lispworks cormanlisp mkcl)
