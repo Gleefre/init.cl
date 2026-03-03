@@ -88,9 +88,11 @@
                                           (list* ',nick (package-nicknames (find-package ',package)))))))))
 
 ;;; Load various libraries, add nicknames
+(ql:quickload (list :alexandria))
+
 #-slow
 (progn
-  (ql:quickload (list :alexandria #-mkcl :serapeum  ; doesn't work on MKCL
+  (ql:quickload (list #-mkcl :serapeum  ; doesn't work on MKCL
                       :stopclock :named-readtables
                       :trivial-indent
                       :trivial-gray-streams
