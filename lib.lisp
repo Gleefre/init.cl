@@ -402,6 +402,10 @@
    (loop for i from 2 while (<= (sq i) num)
          never (zerop (mod num i)))))
 
+(defun average (num &rest more)
+  (/ (reduce #'+ more :initial-value num)
+     (1+ (length more))))
+
 ;;; ranges
 
 (defun <=< (min x max)
