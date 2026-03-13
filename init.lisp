@@ -99,13 +99,15 @@
                       :cffi
                       :com.inuoe.jzon)
                 :silent t)
-  #-mkcl (nick #:s   #:serapeum)
-  (nick #:sc   #:stopclock
-        #:a    #:alexandria
-        #:nr   #:named-readtables
-        #:ti   #:trivial-indent
-        #:tgs  #:trivial-gray-streams
-        #:jzon #:com.inuoe.jzon))
+  (dolist (*package* (list *package* (find-package '#:cl-user)))
+    #-mkcl
+    (nick #:s    #:serapeum)
+    (nick #:sc   #:stopclock
+          #:a    #:alexandria
+          #:nr   #:named-readtables
+          #:ti   #:trivial-indent
+          #:tgs  #:trivial-gray-streams
+          #:jzon #:com.inuoe.jzon)))
 
 ;;; Make JZON understand plists & alists (like in old jzon versions)
 #-slow
