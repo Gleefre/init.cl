@@ -96,14 +96,16 @@
                       :stopclock :named-readtables
                       :trivial-indent
                       :trivial-gray-streams
-                      :cffi)
+                      :cffi
+                      :com.inuoe.jzon)
                 :silent t)
   #-mkcl (nick #:s   #:serapeum)
-  (nick #:sc  #:stopclock
-        #:a   #:alexandria
-        #:nr  #:named-readtables
-        #:ti  #:trivial-indent
-        #:tgs #:trivial-gray-streams))
+  (nick #:sc   #:stopclock
+        #:a    #:alexandria
+        #:nr   #:named-readtables
+        #:ti   #:trivial-indent
+        #:tgs  #:trivial-gray-streams
+        #:jzon #:com.inuoe.jzon))
 
 ;;; symbol-links
 
