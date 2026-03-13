@@ -107,6 +107,58 @@
         #:tgs  #:trivial-gray-streams
         #:jzon #:com.inuoe.jzon))
 
+;;; Make JZON understand plists & alists (like in old jzon versions)
+#-slow
+(progn
+  (defparameter *jzon-detect-alists* T)
+  (defparameter *jzon-detect-plists* NIL)
+
+  (defun jzon-alistp (value)
+    (loop for x in value
+          always (and (consp x)
+                      (or (characterp (car x))
+                          (symbolp (car x))
+                          (stringp (car x))))))
+
+  (defun jzon-plistp (value)
+    (loop for (k . rest) on value by #'cddr
+          always (and (not (null rest))
+                      (or (characterp k)
+                          (symbolp k)
+                          (stringp k))))))
+
+#-slow
+(defmethod jzon:write-value :around ((writer jzon:writer) (value cons))
+  (cond ((and *jzon-detect-alists* (jzon-alistp value))
+         (jzon:with-object writer
+           (let ((replacer (slot-value writer 'jzon::%replacer)))
+             (if replacer
+                 (loop for (key . x) in value do
+                   (multiple-value-call
+                       (lambda (write-p &optional (new-value nil value-changed-p))
+                         (when write-p
+                           (jzon:write-key writer key)
+                           (jzon:write-value writer (if value-changed-p new-value x))))
+                     (funcall replacer key x)))
+                 (loop for (key . x) in value do
+                   (jzon:write-key writer key)
+                   (jzon:write-value writer x))))))
+        ((and *jzon-detect-plists* (jzon-plistp value))
+         (jzon:with-object writer
+           (let ((replacer (slot-value writer 'jzon::%replacer)))
+             (if replacer
+                 (loop for (key x) on value by #'cddr do
+                   (multiple-value-call
+                       (lambda (write-p &optional (new-value nil value-changed-p))
+                         (when write-p
+                           (jzon:write-key writer key)
+                           (jzon:write-value writer (if value-changed-p new-value x))))
+                     (funcall replacer key x)))
+                 (loop for (key x) on value by #'cddr do
+                   (jzon:write-key writer key)
+                   (jzon:write-value writer x))))))
+        (t (call-next-method))))
+
 ;;; symbol-links
 
 #+(and (or sbcl lispworks ccl cmucl) (not symbol-links))
