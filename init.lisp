@@ -24,11 +24,16 @@
   (push (merge-pathnames path (user-homedir-pathname))
         ql:*local-project-directories*))
 
+;; always load alexandria
+(ql:quickload :alexandria :silent t)
+
 ;; quicklisp over https via drakma
 ;; adapted from https://semelz.de/posts/quicklisp-with-https.html
 
-(ql:quickload (list :alexandria :drakma) :silent t)
+#+(or sbcl ccl)  ;; doesn't work on cmucl, pulls way too many dependencies in general
+(ql:quickload :drakma :silent t)
 
+#+(or sbcl ccl)
 (defun ql-https-fetch/drakma (url file &key (follow-redirects t) quietly
                                             (if-exists :rename-and-delete)
                                             (maximum-redirects ql-http:*maximum-redirects*))
@@ -65,6 +70,7 @@
     ;; but since is unused, we can leave it NIL here.
     (values nil (and file (probe-file file)))))
 
+#+(or sbcl ccl)
 (setf (alexandria:assoc-value ql-http:*fetch-scheme-functions* "https" :test 'equal)
       #'ql-https-fetch/drakma
       (alexandria:assoc-value ql-http:*fetch-scheme-functions* "http" :test 'equal)
