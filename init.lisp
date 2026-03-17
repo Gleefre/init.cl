@@ -24,6 +24,52 @@
   (push (merge-pathnames path (user-homedir-pathname))
         ql:*local-project-directories*))
 
+;; quicklisp over https via drakma
+;; adapted from https://semelz.de/posts/quicklisp-with-https.html
+
+(ql:quickload (list :alexandria :drakma) :silent t)
+
+(defun ql-https-fetch/drakma (url file &key (follow-redirects t) quietly
+                                            (if-exists :rename-and-delete)
+                                            (maximum-redirects ql-http:*maximum-redirects*))
+  "Custom scheme-function for https protocol (using drakma)."
+  (setf url (ql-http::merge-urls url ql-http:*default-url-defaults*))
+  (setf file (merge-pathnames file))
+  (when (and (equal (ql-http:scheme url) "http")
+             (null (ql-http:port url)))
+    ;; redirect http urls to https, unless a port is specified
+    (setf (ql-http:scheme url) "https"))
+  (multiple-value-bind (response code)
+      (handler-bind ((drakma:drakma-error
+		               (lambda (c) ; This is as fine-grained as Drakma gets, sadly.
+			             (when (search "but redirection limit has been exceeded." (princ-to-string c))
+			               (error 'ql-http:too-many-redirects
+                                  :url url :redirect-count maximum-redirects)))))
+	    (drakma:http-request (ql-http::urlstring url)
+			                 :force-binary t
+			                 :redirect (if follow-redirects maximum-redirects nil)
+			                 :proxy (if ql-http:*proxy-url*
+					                    (let ((p (ql-http:url ql-http:*proxy-url*)))
+					                      (list (ql-http:hostname p)
+						                        (or (ql-http:port p) 80)))
+					                    nil)
+			                 :user-agent (concatenate 'string
+                                                      (ql-http::user-agent-string)
+                                                      " (drakma)")))
+    (when (/= code 200)
+      (error 'ql-http:unexpected-http-status :url url :status-code code))
+    (unless quietly
+      (format *trace-output* "~&; Fetched (via HTTPS) ~A~%" url))
+    (alexandria:write-byte-vector-into-file response file :if-exists if-exists)
+    ;; The first return value is supposed to be the response header,
+    ;; but since is unused, we can leave it NIL here.
+    (values nil (and file (probe-file file)))))
+
+(setf (alexandria:assoc-value ql-http:*fetch-scheme-functions* "https" :test 'equal)
+      #'ql-https-fetch/drakma
+      (alexandria:assoc-value ql-http:*fetch-scheme-functions* "http" :test 'equal)
+      #'ql-https-fetch/drakma)
+
 ;; Load asdf-contrib for ABCL, setup path to .jar files
 #+abcl (require :abcl-contrib)
 #+abcl (require :abcl-asdf)
@@ -88,8 +134,6 @@
                                           (list* ',nick (package-nicknames (find-package ',package)))))))))
 
 ;;; Load various libraries, add nicknames
-(ql:quickload (list :alexandria))
-
 #-slow
 (progn
   (ql:quickload (list #-mkcl :serapeum  ; doesn't work on MKCL
