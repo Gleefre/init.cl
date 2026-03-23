@@ -276,3 +276,6 @@
       (funcall (find-symbol "STOP" "ORG.SHIRAKUMO.FRAF.HARMONY") server))))
 
 #+sbcl (pushnew 'maybe-stop-harmony sb-ext:*exit-hooks*)
+
+;;; Misc
+#+ccl (setf ccl:*quit-on-eof* t)
